@@ -1,0 +1,151 @@
+body {
+    font-family: Arial, sans-serif;
+    background: #181a20;
+    margin: 0;
+    padding: 0;
+    color: #e0e0e0;
+}
+
+.app {
+    max-width: 600px;
+    margin: 40px auto;
+    background: #23262f;
+    border-radius: 10px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+    padding: 32px 24px;
+}
+
+h1 {
+    text-align: center;
+    color: #fff;
+    margin-bottom: 24px;
+    letter-spacing: 1px;
+}
+
+form#routine-form,
+#load-routine-form {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+form#routine-form input[type="text"],
+#load-routine-form select,
+#load-routine-form input[type="text"] {
+    flex: 1;
+    padding: 8px;
+    border: 1px solid #444;
+    border-radius: 4px;
+    background: #23262f;
+    color: #e0e0e0;
+}
+
+.timer-item {
+    display: flex;
+    align-items: center;
+    background: #20222b;
+    border-radius: 6px;
+    padding: 10px 12px;
+    margin-bottom: 10px;
+    gap: 12px;
+    cursor: grab;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+}
+
+.timer-item .timer-name,
+.timer-item .timer-duration,
+.timer-item .timer-seconds,
+.timer-item .timer-chime {
+    background: #23262f;
+    color: #e0e0e0;
+    border: 1px solid #444;
+    border-radius: 4px;
+    padding: 6px;
+}
+
+.timer-item .timer-name {
+    flex: 1;
+    font-weight: bold;
+}
+
+.timer-item .timer-duration,
+.timer-item .timer-seconds {
+    width: 50px;
+    text-align: right;
+}
+
+.timer-item .remove-timer {
+    margin-left: 8px;
+}
+
+button,
+#load-routine-form button,
+#add-timer,
+#start-routine,
+.remove-timer {
+    padding: 8px 16px;
+    background: #3b82f6;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-size: 15px;
+    cursor: pointer;
+    transition: background 0.2s;
+    font-weight: 500;
+}
+
+button:disabled,
+#start-routine:disabled {
+    background: #444;
+    cursor: not-allowed;
+}
+
+button:hover:not(:disabled),
+#add-timer:hover:not(:disabled),
+#start-routine:hover:not(:disabled),
+.remove-timer:hover:not(:disabled) {
+    background: #2563eb;
+}
+
+.remove-timer {
+    background: #ef4444;
+}
+
+.remove-timer:hover {
+    background: #b91c1c;
+}
+
+#add-timer {
+    display: block;
+    width: 100%;
+    margin-bottom: 24px;
+    background: #10b981;
+}
+
+#add-timer:hover {
+    background: #059669;
+}
+
+#routine-summary {
+    text-align: center;
+    font-size: 18px;
+    color: #a3a3a3;
+    margin-bottom: 16px;
+}
+
+#current-timer-display {
+    text-align: center;
+    font-size: 22px;
+    color: #fbbf24;
+    margin-bottom: 16px;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+select {
+    background: #23262f;
+    color: #e0e0e0;
+    border: 1px solid #444;
+    border-radius: 4px;
+    padding: 6px;
+}
