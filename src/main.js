@@ -1,13 +1,13 @@
 import state from './state.js';
-import { addTimerBtn, routineForm, routineNameInput, toggleRoutineBtn, stopRoutineBtn } from './dom.js';
+import { addTimerBtn, routineForm, toggleRoutineBtn, stopRoutineBtn, openSaveModal, closeSaveModal, saveModalNameInput, saveModalSaveBtn, saveModalCancelBtn, saveModal, showToast, openConfirmModal, closeConfirmModal, confirmModal, confirmModalConfirmBtn, confirmModalCancelBtn } from './dom.js';
 import { updateTopDisplay } from './ui/topDisplay.js';
 import { updateToggleButton } from './dom.js';
 import { renderTimers } from './timersList.js';
 import { stopRoutineIfRunning, togglePlayPause, stopRoutine } from './runner.js';
-import { saveRoutine, loadRoutine, listRoutines, deleteRoutine, getLastUsedRoutine } from './storage.js';
+import { saveRoutine, loadRoutine, listRoutines, deleteRoutine, getLastUsedRoutine, setLastUsedRoutine } from './storage.js';
 
 function autoSave() {
-  const name = routineNameInput.value.trim();
+  const name = state.currentRoutineName?.trim();
   if (name) saveRoutine(name, state.timers);
 }
 
@@ -34,89 +34,136 @@ stopRoutineBtn.addEventListener('click', () => {
   stopRoutine();
 });
 
-// Save routine form
+// Save routine form opens modal
 routineForm.addEventListener('submit', (e) => {
   e.preventDefault();
-  const name = routineNameInput.value.trim();
-  if (!name) return;
-  saveRoutine(name, state.timers);
-  alert(`Routine "${name}" saved!`);
-  populateRoutineDropdown();
+  openSaveModal(state.currentRoutineName || '');
 });
 
-// Load/Delete UI
-let loadSelect;
+// Modal events
+saveModalSaveBtn.addEventListener('click', () => {
+  const name = (saveModalNameInput.value || '').trim();
+  if (!name) { saveModalNameInput.focus(); return; }
+  state.currentRoutineName = name;
+  saveRoutine(name, state.timers);
+  closeSaveModal();
+  populateRoutineDropdown();
+  if (loadSelect) loadSelect.value = name;
+  updateDeleteButtonState();
+  showToast(`Saved "${name}"`);
+});
+saveModalCancelBtn.addEventListener('click', () => closeSaveModal());
+// Confirm modal keyboard support
+document.addEventListener('keydown', (e) => {
+  if (!confirmModal || !confirmModal.classList.contains('open')) return;
+  if (e.key === 'Escape') {
+    e.preventDefault();
+    closeConfirmModal();
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    confirmModalConfirmBtn?.click();
+  }
+});
+document.addEventListener('click', (e) => {
+  const t = e.target;
+  if (t && t.matches('#save-modal .modal-backdrop')) closeSaveModal();
+  if (t && t.matches('#confirm-modal .modal-backdrop')) closeConfirmModal();
+});
 
-function buildLoadUI() {
-  const oldForm = document.getElementById('load-routine-form');
-  if (oldForm) oldForm.remove();
+// Modal keyboard support: Enter = Save, Escape = Cancel
+document.addEventListener('keydown', (e) => {
+  if (!saveModal || !saveModal.classList.contains('open')) return;
+  if (e.key === 'Escape') {
+    e.preventDefault();
+    closeSaveModal();
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    const name = (saveModalNameInput.value || '').trim();
+    if (!name) { saveModalNameInput.focus(); return; }
+    state.currentRoutineName = name;
+    saveRoutine(name, state.timers);
+    closeSaveModal();
+    populateRoutineDropdown();
+    if (loadSelect) loadSelect.value = name;
+    updateDeleteButtonState();
+    showToast(`Saved "${name}"`);
+  }
+});
 
-  const loadForm = document.createElement('form');
-  loadForm.id = 'load-routine-form';
-  // styles moved to CSS (#load-routine-form)
+// Load/Delete UI wired to elements inside #routine-form
+const loadSelect = document.getElementById('load-routine-select');
+const deleteBtn = document.getElementById('delete-routine-btn');
 
-  loadSelect = document.createElement('select');
-  loadSelect.id = 'load-routine-select';
+function updateDeleteButtonState() {
+  if (!deleteBtn) return;
+  const hasSelection = !!(loadSelect && loadSelect.value);
+  deleteBtn.disabled = !hasSelection;
+}
+
+// Populate select options
+function populateRoutineDropdown() {
+  if (!loadSelect) return;
+  // clear existing options
+  while (loadSelect.firstChild) loadSelect.removeChild(loadSelect.firstChild);
   const def = document.createElement('option');
   def.value = '';
   def.textContent = 'Select Routine';
   loadSelect.appendChild(def);
-
-  const loadBtn = document.createElement('button');
-  loadBtn.type = 'submit';
-  loadBtn.textContent = 'Load Routine';
-  loadBtn.className = 'btn btn--primary';
-
-  const deleteBtn = document.createElement('button');
-  deleteBtn.type = 'button';
-  deleteBtn.textContent = 'Delete Routine';
-  deleteBtn.className = 'btn btn--danger';
-  deleteBtn.addEventListener('click', () => {
-    const selectedName = loadSelect.value;
-    if (!selectedName) return;
-    if (confirm(`Delete routine "${selectedName}"? This cannot be undone.`)) {
-      deleteRoutine(selectedName);
-      populateRoutineDropdown();
-      loadSelect.value = '';
-      alert(`Routine "${selectedName}" deleted.`);
-    }
-  });
-
-  loadForm.appendChild(loadSelect);
-  loadForm.appendChild(loadBtn);
-  loadForm.appendChild(deleteBtn);
-  routineForm.parentNode.insertBefore(loadForm, routineForm.nextSibling);
-
-  loadForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const selectedName = loadSelect.value;
-    if (!selectedName) return;
-    const loaded = loadRoutine(selectedName);
-    if (!loaded) {
-      alert(`Routine "${selectedName}" not found.`);
-      return;
-    }
-    state.timers.length = 0;
-    loaded.forEach((t) => state.timers.push(t));
-    renderTimers(state, { onChange: onTimersChanged });
-    routineNameInput.value = selectedName;
-    updateTopDisplay(state);
-  });
-}
-
-function populateRoutineDropdown() {
-  // clear existing options except first
-  while (loadSelect.options.length > 1) loadSelect.remove(1);
   listRoutines().forEach((name) => {
     const opt = document.createElement('option');
     opt.value = name;
     opt.textContent = name;
     loadSelect.appendChild(opt);
   });
+  updateDeleteButtonState();
+}
+
+// Auto-load when a routine is selected
+if (loadSelect) {
+  loadSelect.addEventListener('change', () => {
+    const selectedName = loadSelect.value;
+    updateDeleteButtonState();
+    if (!selectedName) return;
+    const loaded = loadRoutine(selectedName);
+    if (!loaded) { showToast(`"${selectedName}" not found.`); return; }
+    state.timers.length = 0;
+    loaded.forEach((t) => state.timers.push(t));
+    renderTimers(state, { onChange: onTimersChanged });
+    state.currentRoutineName = selectedName;
+    setLastUsedRoutine(selectedName);
+    updateTopDisplay(state);
+  });
+}
+
+// Delete button behavior
+if (deleteBtn) {
+  deleteBtn.addEventListener('click', () => {
+    if (!loadSelect) return;
+    const selectedName = loadSelect.value;
+    if (!selectedName) return;
+    openConfirmModal(`Delete routine \"${selectedName}\"? This cannot be undone.`);
+    const onConfirm = () => {
+      deleteRoutine(selectedName);
+      populateRoutineDropdown();
+      if (loadSelect) loadSelect.value = '';
+      updateDeleteButtonState();
+      // Clear all timers and reset UI
+      state.timers.length = 0;
+      state.currentRoutineName = '';
+      renderTimers(state, { onChange: onTimersChanged });
+      updateTopDisplay(state);
+      showToast(`Deleted \"${selectedName}\"`);
+      closeConfirmModal();
+    };
+    const onCancel = () => {
+      closeConfirmModal();
+    };
+    confirmModalConfirmBtn?.addEventListener('click', onConfirm, { once: true });
+    confirmModalCancelBtn?.addEventListener('click', onCancel, { once: true });
+  });
 }
 
 // Initialize
-buildLoadUI();
 populateRoutineDropdown();
 
 // Load last used routine if available
@@ -128,8 +175,9 @@ window.addEventListener('DOMContentLoaded', () => {
       state.timers.length = 0;
       loaded.forEach((t) => state.timers.push(t));
       renderTimers(state, { onChange: onTimersChanged });
-      routineNameInput.value = last;
+      state.currentRoutineName = last;
       if (loadSelect) loadSelect.value = last;
+      updateDeleteButtonState();
     }
   }
   // First paint

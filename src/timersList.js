@@ -95,8 +95,10 @@ export function renderTimers(state, { onChange }) {
     });
 
     const removeBtn = document.createElement('button');
-    removeBtn.className = 'remove-timer btn btn--danger';
-    removeBtn.textContent = 'Remove';
+    removeBtn.className = 'remove-timer btn btn--danger btn--icon';
+    removeBtn.innerHTML = '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M8 6l1-3h6l1 3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><rect x="6" y="6" width="12" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10 11v6M14 11v6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+    removeBtn.setAttribute('aria-label', 'Remove');
+    removeBtn.title = 'Remove';
     removeBtn.addEventListener('click', () => {
       state.timers.splice(idx, 1);
       onChange?.('remove');
