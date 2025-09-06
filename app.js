@@ -4,12 +4,25 @@ const timers = [];
 let currentTimerIndex = 0;
 let timerInterval = null;
 
+// Place these after DOM elements are defined
 // DOM elements
 const timersContainer = document.getElementById('timers-container');
 const addTimerBtn = document.getElementById('add-timer');
 const routineForm = document.getElementById('routine-form');
 const routineNameInput = document.getElementById('routine-name');
-const routineSummary = document.getElementById('routine-summary');
+
+// --- NEW: Top display for routine and current timer ---
+const topDisplay = document.createElement('div');
+topDisplay.id = 'top-display';
+topDisplay.style.display = 'flex';
+topDisplay.style.justifyContent = 'space-between';
+topDisplay.style.alignItems = 'center';
+topDisplay.style.fontSize = '18px';
+topDisplay.style.color = '#a3a3a3';
+topDisplay.style.fontWeight = 'bold';
+topDisplay.style.marginBottom = '18px';
+routineForm.parentNode.insertBefore(topDisplay, routineForm);
+// --- END NEW ---
 
 // Render timers list
 function renderTimers() {
@@ -25,6 +38,11 @@ function renderTimers() {
         timerDiv.addEventListener('dragover', handleDragOver);
         timerDiv.addEventListener('drop', handleDrop);
 
+        // Handle icon for drag
+        const handle = document.createElement('span');
+        handle.className = 'drag-handle';
+        handle.innerHTML = '&#9776;'; // Unicode "hamburger" icon
+
         // Timer name input
         const nameInput = document.createElement('input');
         nameInput.type = 'text';
@@ -34,6 +52,7 @@ function renderTimers() {
         nameInput.addEventListener('input', (e) => {
             timers[idx].name = e.target.value;
             stopRoutineIfRunning();
+            autoSaveRoutine();
         });
 
         // Timer duration input (minutes)
@@ -42,14 +61,19 @@ function renderTimers() {
         durationInput.value = Math.floor(timer.duration / 60);
         durationInput.className = 'timer-duration';
         durationInput.min = 0;
-        durationInput.style.width = '40px';
         durationInput.title = 'Minutes';
+        durationInput.style.width = '24px'; // half the previous size
         durationInput.addEventListener('input', (e) => {
             const minutes = parseInt(e.target.value) || 0;
             timers[idx].duration = minutes * 60 + (timers[idx].duration % 60);
-            updateRoutineSummary();
             stopRoutineIfRunning();
+            autoSaveRoutine();
         });
+
+        // Timer duration label ":":
+        const colonLabel = document.createElement('span');
+        colonLabel.className = 'timer-label';
+        colonLabel.textContent = ':';
 
         // Timer seconds input
         const secondsInput = document.createElement('input');
@@ -58,18 +82,23 @@ function renderTimers() {
         secondsInput.className = 'timer-seconds';
         secondsInput.min = 0;
         secondsInput.max = 59;
-        secondsInput.style.width = '40px';
         secondsInput.title = 'Seconds';
+        secondsInput.style.width = '24px'; // half the previous size
         secondsInput.addEventListener('input', (e) => {
             let secs = parseInt(e.target.value);
             if (isNaN(secs) || secs < 0) secs = 0;
             if (secs > 59) secs = 59;
             timers[idx].duration = Math.floor(timers[idx].duration / 60) * 60 + secs;
-            updateRoutineSummary();
             stopRoutineIfRunning();
+            autoSaveRoutine();
         });
 
-        // Chime select (update to 10 alarms)
+        // Timer seconds label "s"
+        const secLabel = document.createElement('span');
+        secLabel.className = 'timer-label';
+        secLabel.textContent = 's';
+
+        // Chime select
         const chimeSelect = document.createElement('select');
         chimeSelect.className = 'timer-chime';
         for (let i = 1; i <= 10; i++) {
@@ -82,6 +111,7 @@ function renderTimers() {
         chimeSelect.addEventListener('change', (e) => {
             timers[idx].chime = parseInt(e.target.value);
             stopRoutineIfRunning();
+            autoSaveRoutine();
         });
 
         // Remove button
@@ -91,21 +121,22 @@ function renderTimers() {
         removeBtn.addEventListener('click', () => {
             timers.splice(idx, 1);
             renderTimers();
-            updateRoutineSummary();
             stopRoutineIfRunning();
+            autoSaveRoutine();
         });
 
+        // Add handle and inputs to timerDiv
+        timerDiv.appendChild(handle);
         timerDiv.appendChild(nameInput);
         timerDiv.appendChild(durationInput);
-        timerDiv.appendChild(document.createTextNode('m'));
+        timerDiv.appendChild(colonLabel);
         timerDiv.appendChild(secondsInput);
-        timerDiv.appendChild(document.createTextNode('s'));
+        timerDiv.appendChild(secLabel);
         timerDiv.appendChild(chimeSelect);
         timerDiv.appendChild(removeBtn);
 
         timersContainer.appendChild(timerDiv);
     });
-    updateRoutineSummary();
 }
 
 // Drag and drop logic
@@ -123,6 +154,16 @@ function handleDrop(e) {
         const moved = timers.splice(dragSrcIdx, 1)[0];
         timers.splice(targetIdx, 0, moved);
         renderTimers();
+
+        // Save routine after reordering
+        const routineName = routineNameInput.value.trim();
+        if (routineName) {
+            localStorage.setItem(
+                `routine_${routineName}`,
+                JSON.stringify(timers)
+            );
+            localStorage.setItem('last_used_routine', routineName);
+        }
     }
     dragSrcIdx = null;
 }
@@ -130,7 +171,6 @@ function handleDrop(e) {
 // Add timer
 addTimerBtn.addEventListener('click', () => {
     addTimer();
-    updateRoutineSummary();
 });
 
 function addTimer(name = '', duration = 60) {
@@ -139,29 +179,16 @@ function addTimer(name = '', duration = 60) {
 }
 
 // Routine summary
-function updateRoutineSummary() {
-    const totalDuration = timers.reduce((sum, t) => sum + t.duration, 0);
-    routineSummary.textContent = `Total timers: ${timers.length} | Total duration: ${totalDuration}s`;
-}
-
 const startRoutineBtn = document.createElement('button');
 startRoutineBtn.textContent = 'Start';
 startRoutineBtn.id = 'start-routine';
-startRoutineBtn.style.display = 'block';
-startRoutineBtn.style.width = '100%';
-startRoutineBtn.style.marginBottom = '24px';
 timersContainer.parentNode.insertBefore(startRoutineBtn, timersContainer.nextSibling);
 
 let isRunning = false;
 let timeLeft = 0;
 
 // Display for current timer and time left
-const currentTimerDisplay = document.createElement('div');
-currentTimerDisplay.id = 'current-timer-display';
-currentTimerDisplay.style.textAlign = 'center';
-currentTimerDisplay.style.fontSize = '20px';
-currentTimerDisplay.style.marginBottom = '16px';
-timersContainer.parentNode.insertBefore(currentTimerDisplay, timersContainer);
+// Removed currentTimerDisplay element creation and insertion
 
 startRoutineBtn.addEventListener('click', () => {
     if (timers.length === 0) return;
@@ -176,25 +203,17 @@ startRoutineBtn.addEventListener('click', () => {
 const pauseRoutineBtn = document.createElement('button');
 pauseRoutineBtn.textContent = 'Pause';
 pauseRoutineBtn.id = 'pause-routine';
-pauseRoutineBtn.style.display = 'block';
-pauseRoutineBtn.style.width = '100%';
-pauseRoutineBtn.style.marginBottom = '12px';
 
 const stopRoutineBtn = document.createElement('button');
 stopRoutineBtn.textContent = 'Stop';
 stopRoutineBtn.id = 'stop-routine';
-stopRoutineBtn.style.display = 'block';
-stopRoutineBtn.style.width = '100%';
-stopRoutineBtn.style.marginBottom = '24px';
 
 startRoutineBtn.parentNode.insertBefore(pauseRoutineBtn, startRoutineBtn.nextSibling);
 pauseRoutineBtn.parentNode.insertBefore(stopRoutineBtn, pauseRoutineBtn.nextSibling);
 
 // Create a container for control buttons
 const controlsContainer = document.createElement('div');
-controlsContainer.style.display = 'flex';
-controlsContainer.style.gap = '12px';
-controlsContainer.style.marginBottom = '24px';
+controlsContainer.className = 'controls-row';
 
 // Style buttons for flex grow and uniform height
 [startRoutineBtn, pauseRoutineBtn, stopRoutineBtn].forEach(btn => {
@@ -202,6 +221,8 @@ controlsContainer.style.marginBottom = '24px';
     btn.style.height = '44px';
     btn.style.marginBottom = '0';
     btn.style.display = 'block';
+    btn.style.minWidth = '0';
+    btn.style.boxSizing = 'border-box';
 });
 
 // Remove previous insertions if present
@@ -248,33 +269,33 @@ startRoutineBtn.addEventListener('click', () => {
 
 // Stop button logic
 stopRoutineBtn.addEventListener('click', () => {
-    if (!isRunning) return;
-    clearInterval(timerInterval);
-    isRunning = false;
-    isPaused = false;
-    startRoutineBtn.disabled = false;
-    pauseRoutineBtn.disabled = false;
-    currentTimerDisplay.textContent = '';
-    updateRoutineSummary();
+    stopRoutineIfRunning()
 });
+
+let routineElapsed = 0;
+let currentTimerElapsed = 0;
 
 // Update runRoutine to support resume
 function runRoutine(resume = false) {
     if (currentTimerIndex >= timers.length) {
-        currentTimerDisplay.textContent = 'Routine complete!';
         isRunning = false;
         startRoutineBtn.disabled = false;
         pauseRoutineBtn.disabled = false;
         return;
     }
     const timer = timers[currentTimerIndex];
-    if (!resume) timeLeft = timer.duration;
-    updateCurrentTimerDisplay(timer.name, timeLeft);
+    if (!resume) {
+        timeLeft = timer.duration;
+        currentTimerElapsed = 0;
+        if (currentTimerIndex === 0) routineElapsed = 0;
+    }
+    updateTopDisplay();
 
     timerInterval = setInterval(() => {
         timeLeft--;
-        updateCurrentTimerDisplay(timer.name, timeLeft);
-        updateRoutineSummary(timeLeft);
+        currentTimerElapsed++;
+        routineElapsed++;
+        updateTopDisplay();
         if (timeLeft <= 0) {
             clearInterval(timerInterval);
             playChime(timer.chime);
@@ -284,12 +305,6 @@ function runRoutine(resume = false) {
     }, 1000);
 }
 
-function updateCurrentTimerDisplay(name, seconds) {
-    const min = Math.floor(seconds / 60);
-    const sec = seconds % 60;
-    currentTimerDisplay.textContent = `Current: ${name || 'Unnamed'} — ${min}:${sec.toString().padStart(2, '0')}`;
-}
-
 function playChime(chimeNumber) {
     const audio = document.getElementById('chime-audio');
     const numStr = chimeNumber.toString().padStart(2, '0');
@@ -297,28 +312,27 @@ function playChime(chimeNumber) {
     audio.play();
 }
 
-// Update routine summary to show total time left if running
-function updateRoutineSummary(overrideTimeLeft = null) {
-    const totalDuration = timers.reduce((sum, t) => sum + t.duration, 0);
-    let totalLeft = totalDuration;
-    if (isRunning && currentTimerIndex < timers.length) {
-        const timersLeft = timers.slice(currentTimerIndex + 1);
-        const leftTimersDuration = timersLeft.reduce((sum, t) => sum + t.duration, 0);
-        totalLeft = (overrideTimeLeft !== null ? overrideTimeLeft : timers[currentTimerIndex].duration) + leftTimersDuration;
-        routineSummary.textContent = `Total timers: ${timers.length} | Total duration: ${totalDuration}s | Time left: ${totalLeft}s`;
-    } else {
-        routineSummary.textContent = `Total timers: ${timers.length} | Total duration: ${totalDuration}s`;
-    }
+function updateTopDisplay() {
+    // Routine elapsed time
+    let routineTotal = timers.reduce((sum, t) => sum + t.duration, 0);
+    let routineElapsedStr = formatTime(routineElapsed);
+    let routineTotalStr = formatTime(routineTotal);
+
+    // Current timer elapsed and duration
+    let currentTimerDur = timers[currentTimerIndex] ? timers[currentTimerIndex].duration : 0;
+    let currentTimerElapsedStr = formatTime(currentTimerElapsed);
+    let currentTimerDurStr = formatTime(currentTimerDur);
+
+    topDisplay.innerHTML = `
+        <span style="float:left;">Routine: ${routineElapsedStr} | ${routineTotalStr}</span>
+        <span style="float:right;">Current: ${currentTimerElapsedStr} | ${currentTimerDurStr}</span>
+    `;
 }
 
-// Stop routine if user edits timers
-function stopRoutineIfRunning() {
-    if (isRunning) {
-        clearInterval(timerInterval);
-        isRunning = false;
-        startRoutineBtn.disabled = false;
-        currentTimerDisplay.textContent = '';
-    }
+function formatTime(seconds) {
+    const min = Math.floor(seconds / 60).toString().padStart(2, '0');
+    const sec = (seconds % 60).toString().padStart(2, '0');
+    return `${min}:${sec}`;
 }
 
 // Reference to the routine select dropdown
@@ -417,7 +431,6 @@ function loadRoutine(routineName) {
         timers.length = 0;
         loadedTimers.forEach(t => timers.push(t));
         renderTimers();
-        updateRoutineSummary();
         routineNameInput.value = routineName; // Autofill routine name field
         localStorage.setItem('last_used_routine', routineName); // Save last used
         if (loadSelect) loadSelect.value = routineName;
@@ -438,5 +451,134 @@ routineForm.addEventListener('submit', (e) => {
     alert(`Routine "${routineName}" saved!`);
 });
 
+function autoSaveRoutine() {
+    const routineName = routineNameInput.value.trim();
+    if (routineName) {
+        localStorage.setItem(
+            `routine_${routineName}`,
+            JSON.stringify(timers)
+        );
+        localStorage.setItem('last_used_routine', routineName);
+    }
+}
+
 // Initial render
 renderTimers();
+updateTopDisplay();
+
+// Remove Pause and Start buttons, replace with a single toggle button
+const toggleRoutineBtn = document.createElement('button');
+toggleRoutineBtn.id = 'toggle-routine';
+toggleRoutineBtn.style.flex = '1';
+toggleRoutineBtn.style.height = '44px';
+toggleRoutineBtn.style.marginBottom = '0';
+toggleRoutineBtn.style.display = 'block';
+toggleRoutineBtn.style.minWidth = '0';
+toggleRoutineBtn.style.boxSizing = 'border-box';
+
+// Helper to set icon and label
+function updateToggleButton() {
+    if (!isRunning || isPaused) {
+        // Play icon (▶)
+        toggleRoutineBtn.innerHTML = '<span style="font-size:24px;">&#9654;</span>';
+    } else {
+        // Pause icon (⏸)
+        toggleRoutineBtn.innerHTML = '<span style="font-size:24px;">&#10073;&#10073;</span>';
+    }
+}
+
+// Remove previous buttons from controlsContainer
+controlsContainer.innerHTML = '';
+controlsContainer.appendChild(toggleRoutineBtn);
+controlsContainer.appendChild(stopRoutineBtn);
+
+// Initial state
+updateToggleButton();
+
+// Toggle button logic
+toggleRoutineBtn.addEventListener('click', () => {
+    if (timers.length === 0) return;
+    if (!isRunning) {
+        // Start
+        isRunning = true;
+        isPaused = false;
+        currentTimerIndex = 0;
+        toggleRoutineBtn.disabled = false;
+        stopRoutineBtn.disabled = false;
+        runRoutine();
+        updateToggleButton();
+    } else if (!isPaused) {
+        // Pause
+        isPaused = true;
+        clearInterval(timerInterval);
+        updateToggleButton();
+    } else {
+        // Resume
+        isPaused = false;
+        runRoutine(true);
+        updateToggleButton();
+    }
+});
+
+// Update toggle button on stop
+stopRoutineBtn.addEventListener('click', () => {
+    if (!isRunning) return;
+    clearInterval(timerInterval);
+    updateTopDisplay();
+    isRunning = false;
+    isPaused = false;
+    toggleRoutineBtn.disabled = false;
+    stopRoutineBtn.disabled = false;
+    updateToggleButton();
+});
+
+// Update toggle button in runRoutine and stopRoutineIfRunning
+function runRoutine(resume = false) {
+    if (currentTimerIndex >= timers.length) {
+        isRunning = false;
+        isPaused = false;
+        toggleRoutineBtn.disabled = false;
+        stopRoutineBtn.disabled = false;
+        updateToggleButton();
+        return;
+    }
+    const timer = timers[currentTimerIndex];
+    if (!resume) {
+        timeLeft = timer.duration;
+        currentTimerElapsed = 0;
+        if (currentTimerIndex === 0) routineElapsed = 0;
+    }
+    updateTopDisplay();
+    updateToggleButton();
+
+    timerInterval = setInterval(() => {
+        if (isPaused) {
+            clearInterval(timerInterval);
+            return;
+        }
+        timeLeft--;
+        currentTimerElapsed++;
+        routineElapsed++;
+        updateTopDisplay();
+        if (timeLeft <= 0) {
+            clearInterval(timerInterval);
+            playChime(timer.chime);
+            currentTimerIndex++;
+            runRoutine();
+        }
+    }, 1000);
+}
+
+function stopRoutineIfRunning() {
+    if (isRunning) {
+        clearInterval(timerInterval);
+        isRunning = false;
+        isPaused = false;
+        routineElapsed = 0;
+        currentTimerElapsed = 0;
+        console.log("timers cleared");
+        updateTopDisplay();
+        updateToggleButton();
+        console.log('Routine stopped');
+    }
+}

@@ -45,9 +45,9 @@ form#routine-form input[type="text"],
     align-items: center;
     background: #20222b;
     border-radius: 6px;
-    padding: 10px 12px;
+    padding: 8px 8px;
     margin-bottom: 10px;
-    gap: 12px;
+    gap: 8px;
     cursor: grab;
     box-shadow: 0 2px 8px rgba(0,0,0,0.10);
 }
@@ -66,16 +66,49 @@ form#routine-form input[type="text"],
 .timer-item .timer-name {
     flex: 1;
     font-weight: bold;
+    min-width: 0;
 }
 
 .timer-item .timer-duration,
 .timer-item .timer-seconds {
-    width: 50px;
+    width: 24px;
     text-align: right;
+    margin-right: 2px;
+    margin-left: 2px;
+    padding: 6px;
+}
+
+.timer-item .timer-chime {
+    margin-left: 4px;
+    margin-right: 4px;
+    padding: 6px;
 }
 
 .timer-item .remove-timer {
-    margin-left: 8px;
+    margin-left: 6px;
+    margin-right: 0;
+}
+
+.timer-label {
+    margin: 0 2px;
+    font-size: 15px;
+    color: #a3a3a3;
+    user-select: none;
+}
+
+.controls-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.controls-row button {
+    flex: 1;
+    height: 44px;
+    margin-bottom: 0;
+    display: block;
+    min-width: 0;
+    box-sizing: border-box;
 }
 
 button,
@@ -126,20 +159,14 @@ button:hover:not(:disabled),
     background: #059669;
 }
 
+#total-duration-display,
+#current-timer-display,
 #routine-summary {
-    text-align: center;
     font-size: 18px;
     color: #a3a3a3;
-    margin-bottom: 16px;
-}
-
-#current-timer-display {
-    text-align: center;
-    font-size: 22px;
-    color: #fbbf24;
-    margin-bottom: 16px;
     font-weight: bold;
-    letter-spacing: 1px;
+    text-align: center;
+    margin-bottom: 16px;
 }
 
 select {
@@ -148,4 +175,32 @@ select {
     border: 1px solid #444;
     border-radius: 4px;
     padding: 6px;
+}
+
+.drag-handle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #a3a3a3;
+    background: transparent;
+    user-select: none;
+    margin-right: 4px;
+    padding: 0 2px;
+    cursor: grab;
+    font-size: 20px;
+    min-width: 24px;
+}
+
+#top-display {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 18px;
+    color: #a3a3a3;
+    font-weight: bold;
+    margin-bottom: 18px;
+}
+
+#top-display span {
+    float: none !important;
 }
