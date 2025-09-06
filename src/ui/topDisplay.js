@@ -16,8 +16,8 @@ export function updateTopDisplay({ timers, routineElapsed, currentTimerElapsed, 
   const currentTimerDurStr = formatTime(currentTimerDur);
 
   topDisplay.innerHTML = `
-    <span style="float:left;">Routine: ${routineElapsedStr} | ${routineTotalStr}</span>
-    <span style="float:right;">Current: ${currentTimerElapsedStr} | ${currentTimerDurStr}</span>
+    <span class="td-left">Routine: ${routineElapsedStr} | ${routineTotalStr}</span>
+    <span class="td-right">Current: ${currentTimerElapsedStr} | ${currentTimerDurStr}</span>
   `;
 }
 

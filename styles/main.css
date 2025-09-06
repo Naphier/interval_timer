@@ -102,7 +102,7 @@ form#routine-form input[type="text"],
     margin-bottom: 24px;
 }
 
-.controls-row button {
+.controls-row .btn {
     flex: 1;
     height: 44px;
     margin-bottom: 0;
@@ -111,53 +111,49 @@ form#routine-form input[type="text"],
     box-sizing: border-box;
 }
 
-button,
-#load-routine-form button,
-#add-timer,
-#start-routine,
-.remove-timer {
+/* Button Utilities */
+.btn {
+    display: inline-block;
     padding: 8px 16px;
-    background: #3b82f6;
-    color: #fff;
     border: none;
     border-radius: 4px;
     font-size: 15px;
-    cursor: pointer;
-    transition: background 0.2s;
     font-weight: 500;
+    color: #fff;
+    cursor: pointer;
+    transition: background-color 0.2s ease, filter 0.15s ease, transform 0.05s ease;
 }
 
-button:disabled,
-#start-routine:disabled {
+.btn:disabled {
     background: #444;
     cursor: not-allowed;
 }
 
-button:hover:not(:disabled),
-#add-timer:hover:not(:disabled),
-#start-routine:hover:not(:disabled),
-.remove-timer:hover:not(:disabled) {
-    background: #2563eb;
+.btn:hover:not(:disabled) {
+    filter: brightness(1.05);
 }
 
-.remove-timer {
-    background: #ef4444;
+.btn--primary { background: #3b82f6; }
+.btn--primary:hover:not(:disabled) { background: #2563eb; }
+
+.btn--success { background: #10b981; }
+.btn--success:hover:not(:disabled) { background: #059669; }
+
+.btn--danger { background: #ef4444; }
+.btn--danger:hover:not(:disabled) { background: #b91c1c; }
+
+.btn--block { width: 100%; display: block; }
+
+/* Icon-only buttons (e.g., play/pause) */
+.btn--icon {
+    font-size: 24px;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.remove-timer:hover {
-    background: #b91c1c;
-}
-
-#add-timer {
-    display: block;
-    width: 100%;
-    margin-bottom: 24px;
-    background: #10b981;
-}
-
-#add-timer:hover {
-    background: #059669;
-}
+/* Removed old global button styles in favor of .btn utilities */
 
 #total-duration-display,
 #current-timer-display,

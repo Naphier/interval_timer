@@ -4,16 +4,17 @@
     <meta charset="UTF-8">
     <title>Interval Timer Routine</title>
     <link rel="stylesheet" href="styles/main.css">
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
 </head>
 <body>
     <div class="app">
         <!-- Total duration will be injected above the form by JS -->
         <form id="routine-form">
             <input type="text" id="routine-name" placeholder="Routine Name" required>
-            <button type="submit">Save Routine</button>
+            <button type="submit" class="btn btn--primary">Save Routine</button>
         </form>
         <div id="timers-container"></div>
-        <button id="add-timer">Add Timer</button>
+        <button id="add-timer" class="btn btn--success btn--block">Add Timer</button>
         <audio id="chime-audio"></audio>
     </div>
     <script type="module" src="src/main.js"></script>

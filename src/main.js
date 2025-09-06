@@ -53,9 +53,7 @@ function buildLoadUI() {
 
   const loadForm = document.createElement('form');
   loadForm.id = 'load-routine-form';
-  loadForm.style.display = 'flex';
-  loadForm.style.gap = '12px';
-  loadForm.style.marginBottom = '16px';
+  // styles moved to CSS (#load-routine-form)
 
   loadSelect = document.createElement('select');
   loadSelect.id = 'load-routine-select';
@@ -67,10 +65,12 @@ function buildLoadUI() {
   const loadBtn = document.createElement('button');
   loadBtn.type = 'submit';
   loadBtn.textContent = 'Load Routine';
+  loadBtn.className = 'btn btn--primary';
 
   const deleteBtn = document.createElement('button');
   deleteBtn.type = 'button';
   deleteBtn.textContent = 'Delete Routine';
+  deleteBtn.className = 'btn btn--danger';
   deleteBtn.addEventListener('click', () => {
     const selectedName = loadSelect.value;
     if (!selectedName) return;

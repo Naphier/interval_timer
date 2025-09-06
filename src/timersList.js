@@ -49,7 +49,7 @@ export function renderTimers(state, { onChange }) {
     durationInput.className = 'timer-duration';
     durationInput.min = 0;
     durationInput.title = 'Minutes';
-    durationInput.style.width = '24px';
+    // width styled via CSS
     durationInput.addEventListener('input', (e) => {
       const minutes = parseInt(e.target.value, 10) || 0;
       timers[idx].duration = minutes * 60 + (timers[idx].duration % 60 || 0);
@@ -67,7 +67,7 @@ export function renderTimers(state, { onChange }) {
     secondsInput.min = 0;
     secondsInput.max = 59;
     secondsInput.title = 'Seconds';
-    secondsInput.style.width = '24px';
+    // width styled via CSS
     secondsInput.addEventListener('input', (e) => {
       let secs = parseInt(e.target.value, 10);
       if (isNaN(secs) || secs < 0) secs = 0;
@@ -95,7 +95,7 @@ export function renderTimers(state, { onChange }) {
     });
 
     const removeBtn = document.createElement('button');
-    removeBtn.className = 'remove-timer';
+    removeBtn.className = 'remove-timer btn btn--danger';
     removeBtn.textContent = 'Remove';
     removeBtn.addEventListener('click', () => {
       state.timers.splice(idx, 1);
