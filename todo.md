@@ -8,4 +8,9 @@
  [x] countdown bar for total routine and each timer
  [x] checkmark by each timer when done
  [x] lock editing during playback
+ [ ] REPEAT a section (with x/y tracker on left when playing)
+ [x] Timer row UI cleanup
+   [x] more space for number input (scrollbars overlap)
+   [x] remove space left/right of :
+   [x] remove space left of s 
  [ ] wrap into electron or something to make it nice?

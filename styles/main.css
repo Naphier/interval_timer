@@ -132,12 +132,17 @@ form#routine-form select,
 
 .timer-item .timer-duration,
 .timer-item .timer-seconds {
-    width: 24px;
+    box-sizing: border-box;
+    width: 45px; /* fits 2 digits + spinners */
     text-align: right;
-    margin-right: 2px;
-    margin-left: 2px;
     padding: 6px;
 }
+
+/* Remove extra spacing around the colon between mm and ss */
+.timer-item .timer-duration { margin-left: 2px; margin-right: 0; }
+.timer-item .timer-seconds { margin-left: 0; margin-right: 0; }
+.timer-item .timer-duration + .timer-label { margin-left: 0; margin-right: 0; }
+.timer-item .timer-seconds + .timer-label { margin-left: 0; }
 
 .timer-item .timer-chime {
     margin-left: 4px;
