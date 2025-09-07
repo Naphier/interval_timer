@@ -114,6 +114,7 @@ form#routine-form select,
 }
 
 .timer-item .timer-name,
+.timer-item .timer-repeats,
 .timer-item .timer-duration,
 .timer-item .timer-seconds,
 .timer-item .timer-chime {
@@ -137,6 +138,16 @@ form#routine-form select,
     text-align: right;
     padding: 6px;
 }
+
+/* Repeats input */
+.timer-item .timer-repeats {
+    box-sizing: border-box;
+    width: 45px;
+    text-align: right;
+    margin-right: 0;
+    padding: 6px;
+}
+.timer-item .timer-repeats + .timer-label { margin-left: 0; margin-right: 6px; }
 
 /* Remove extra spacing around the colon between mm and ss */
 .timer-item .timer-duration { margin-left: 2px; margin-right: 0; }

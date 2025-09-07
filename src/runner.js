@@ -12,17 +12,28 @@ function playChime(chimeNumber) {
 function tick() {
   if (state.isPaused) return;
   state.lastTickAtMs = (typeof performance !== 'undefined' ? performance.now() : Date.now());
-  state.timeLeft--;
-  state.currentTimerElapsed++;
-  state.routineElapsed++;
+  const speed = Math.max(1, Math.floor(state.speedMultiplier || 1));
+  const advance = Math.min(speed, Math.max(0, state.timeLeft || 0));
+  state.timeLeft -= advance;
+  state.currentTimerElapsed += advance;
+  state.routineElapsed += advance;
   updateTopDisplay(state);
   document.dispatchEvent(new CustomEvent('timers:updated'));
   if (state.timeLeft <= 0) {
     clearInterval(state.timerInterval);
     const timer = state.timers[state.currentTimerIndex];
     playChime(timer?.chime || 1);
-    state.currentTimerIndex++;
-    runRoutine();
+    const totalRepeats = Math.min(99, Math.max(1, parseInt(timer?.repeats || 1, 10)));
+    if (state.currentRepeat < totalRepeats) {
+      // Next repetition of the same timer
+      state.currentRepeat++;
+      runRoutine(false);
+    } else {
+      // Move to next timer
+      state.currentTimerIndex++;
+      state.currentRepeat = 1;
+      runRoutine();
+    }
   }
 }
 
@@ -56,6 +67,7 @@ export function togglePlayPause() {
     state.isRunning = true;
     state.isPaused = false;
     state.currentTimerIndex = 0;
+    state.currentRepeat = 1;
     stopRoutineBtn.disabled = false;
     runRoutine();
   } else if (!state.isPaused) {

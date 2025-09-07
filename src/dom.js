@@ -34,6 +34,8 @@ controlsContainer.appendChild(stopRoutineBtn);
 export function updateToggleButton({ isRunning, isPaused }) {
   // Use unicode icons and style via CSS
   toggleRoutineBtn.textContent = (!isRunning || isPaused) ? '\u25B6' : '\u23F8';
+  // Disable adding timers while routine is running (paused or not)
+  if (addTimerBtn) addTimerBtn.disabled = !!isRunning;
 }
 
 export {

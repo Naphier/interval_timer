@@ -13,4 +13,6 @@
    [x] more space for number input (scrollbars overlap)
    [x] remove space left/right of :
    [x] remove space left of s 
+
+ [ ] BUG - when starting off with an "unsaved" if you save a routine the top display doesn't update.
  [ ] wrap into electron or something to make it nice?

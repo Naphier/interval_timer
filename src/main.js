@@ -20,7 +20,7 @@ function onTimersChanged() {
 
 // Add timer button
 addTimerBtn.addEventListener('click', () => {
-  state.timers.push({ name: '', duration: 60, chime: 1 });
+  state.timers.push({ name: '', duration: 60, chime: 1, repeats: 1 });
   renderTimers(state, { onChange: onTimersChanged });
   onTimersChanged();
 });
@@ -167,7 +167,8 @@ function progressFrame() {
       elapsed = duration;
     } else if (idx === state.currentTimerIndex) {
       const last = state.lastTickAtMs || now;
-      const frac = Math.min(1, Math.max(0, (now - last) / 1000));
+      const speed = Math.max(1, state.speedMultiplier || 1);
+      const frac = Math.max(0, (now - last) / 1000 * speed);
       elapsed = state.currentTimerElapsed + frac;
     } else {
       elapsed = 0;
@@ -178,9 +179,13 @@ function progressFrame() {
   // Update top display bar smoothly
   const topFill = document.querySelector('#top-display .progress-fill');
   if (topFill) {
-    const total = state.timers.reduce((s, t) => s + (t.duration || 0), 0);
+    const total = state.timers.reduce((s, t) => {
+      const reps = Math.min(99, Math.max(1, parseInt(t.repeats || 1, 10)));
+      return s + (t.duration || 0) * reps;
+    }, 0);
     const last = state.lastTickAtMs || now;
-    const frac = Math.min(1, Math.max(0, (now - last) / 1000));
+    const speed = Math.max(1, state.speedMultiplier || 1);
+    const frac = Math.max(0, (now - last) / 1000 * speed);
     const elapsed = Math.min(total, state.routineElapsed + frac);
     const pct = total > 0 ? Math.min(100, Math.max(0, (elapsed / total) * 100)) : 0;
     topFill.style.width = pct + '%';
@@ -222,6 +227,18 @@ populateRoutineDropdown();
 
 // Load last used routine if available
 window.addEventListener('DOMContentLoaded', () => {
+  // Dev-only speed control via URL (?speed=10) or localStorage ('debug_speed')
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const fromUrl = params.get('speed');
+    const fromLs = localStorage.getItem('debug_speed');
+    const parsed = parseFloat(fromUrl || fromLs || '1');
+    if (Number.isFinite(parsed) && parsed > 0) {
+      // Cap to avoid runaway animations
+      state.speedMultiplier = Math.min(200, parsed);
+    }
+  } catch {}
+
   const last = getLastUsedRoutine();
   if (last) {
     const loaded = loadRoutine(last);

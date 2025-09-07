@@ -38,12 +38,17 @@ export function renderTimers(state, { onChange } = {}) {
       text.className = 'progress-text';
       const left = document.createElement('span');
       left.className = 'progress-left';
-      left.textContent = timer.name || `Timer ${idx + 1}`;
+      const totalRepeats = Math.min(99, Math.max(1, parseInt(timer.repeats || 1, 10)));
+      const showRepeats = isRunning && idx === currentTimerIndex && totalRepeats > 1;
+      const repPrefix = showRepeats
+        ? `${Math.max(1, state.currentRepeat || 1)}/${totalRepeats} `
+        : '';
+      left.textContent = `${repPrefix}${timer.name || `Timer ${idx + 1}`}`;
       const right = document.createElement('span');
       right.className = 'progress-right';
-      const remaining = isCompleted ? 0 : (idx < currentTimerIndex ? 0 : (idx === currentTimerIndex ? Math.max(0, timeLeft || 0) : duration));
       const shownElapsed = Math.min(duration, elapsed);
-      right.textContent = `${formatTime(shownElapsed)} / ${formatTime(remaining)}`;
+      // Show elapsed / total for each timer while running
+      right.textContent = `${formatTime(shownElapsed)} / ${formatTime(duration)}`;
 
       text.appendChild(left);
       text.appendChild(right);
@@ -87,6 +92,27 @@ export function renderTimers(state, { onChange } = {}) {
     const handle = document.createElement('span');
     handle.className = 'drag-handle';
     handle.innerHTML = '&#9776;';
+
+    // Repeats input (before name)
+    const repeatsInput = document.createElement('input');
+    repeatsInput.type = 'number';
+    repeatsInput.min = 1;
+    repeatsInput.max = 99;
+    repeatsInput.value = Math.min(99, Math.max(1, parseInt(timer.repeats || 1, 10)));
+    repeatsInput.className = 'timer-repeats';
+    repeatsInput.title = 'Repeats';
+    repeatsInput.addEventListener('input', (e) => {
+      let val = parseInt(e.target.value, 10);
+      if (isNaN(val) || val < 1) val = 1;
+      if (val > 99) val = 99;
+      e.target.value = String(val);
+      timers[idx].repeats = val;
+      onChange?.('edit');
+    });
+
+    const repeatLabel = document.createElement('span');
+    repeatLabel.className = 'timer-label';
+    repeatLabel.textContent = 'x';
 
     const nameInput = document.createElement('input');
     nameInput.type = 'text';
@@ -161,6 +187,8 @@ export function renderTimers(state, { onChange } = {}) {
     });
 
     timerDiv.appendChild(handle);
+    timerDiv.appendChild(repeatsInput);
+    timerDiv.appendChild(repeatLabel);
     timerDiv.appendChild(nameInput);
     timerDiv.appendChild(durationInput);
     timerDiv.appendChild(colonLabel);
