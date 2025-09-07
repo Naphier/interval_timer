@@ -1,13 +1,68 @@
 import { timersContainer } from './dom.js';
+import { formatTime } from './ui/topDisplay.js';
 
 // Renders the list of timers with drag-and-drop and inline editing
-export function renderTimers(state, { onChange }) {
+export function renderTimers(state, { onChange } = {}) {
   timersContainer.innerHTML = '';
-  const { timers } = state;
+  const { timers, isRunning, currentTimerIndex, currentTimerElapsed, timeLeft } = state;
+  const isCompleted = !isRunning && timers.length > 0 && currentTimerIndex >= timers.length;
 
   let dragSrcIdx = null;
 
   timers.forEach((timer, idx) => {
+    // Running or completed view: progress bars
+    if (isRunning || isCompleted) {
+      const row = document.createElement('div');
+      row.className = 'timer-item timer-item--progress';
+
+      const track = document.createElement('div');
+      track.className = 'progress-track';
+
+      const fill = document.createElement('div');
+      fill.className = 'progress-fill';
+      const duration = timer.duration || 0;
+      let elapsed = 0;
+      if (isCompleted) {
+        elapsed = duration;
+      } else if (idx < currentTimerIndex) {
+        elapsed = duration;
+      } else if (idx === currentTimerIndex) {
+        elapsed = currentTimerElapsed;
+      } else {
+        elapsed = 0;
+      }
+      const pct = duration > 0 ? Math.min(100, Math.max(0, (elapsed / duration) * 100)) : 0;
+      fill.style.width = pct + '%';
+
+      const text = document.createElement('div');
+      text.className = 'progress-text';
+      const left = document.createElement('span');
+      left.className = 'progress-left';
+      left.textContent = timer.name || `Timer ${idx + 1}`;
+      const right = document.createElement('span');
+      right.className = 'progress-right';
+      const remaining = isCompleted ? 0 : (idx < currentTimerIndex ? 0 : (idx === currentTimerIndex ? Math.max(0, timeLeft || 0) : duration));
+      const shownElapsed = Math.min(duration, elapsed);
+      right.textContent = `${formatTime(shownElapsed)} / ${formatTime(remaining)}`;
+
+      text.appendChild(left);
+      text.appendChild(right);
+
+      track.appendChild(fill);
+      // Show a centered checkmark when this timer is complete
+      if (idx < currentTimerIndex) {
+        const check = document.createElement('div');
+        check.className = 'progress-check';
+        check.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 13l4 4L19 7" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+        track.appendChild(check);
+      }
+      track.appendChild(text);
+      row.appendChild(track);
+      timersContainer.appendChild(row);
+      return; // skip editor row while running
+    }
+
+    // Editor view (not running)
     const timerDiv = document.createElement('div');
     timerDiv.className = 'timer-item';
     timerDiv.draggable = true;

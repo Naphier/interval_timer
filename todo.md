@@ -5,7 +5,7 @@
  [x] use modal dialogues for the popups instead of browser alerts
  [x] extract all inline CSS to put in styles/main.css
  [x] refactor into classes / modules
- [ ] countdown bar for total routine and each timer
- [ ] checkmark by each timer when done
- [ ] lock editing during playback
+ [x] countdown bar for total routine and each timer
+ [x] checkmark by each timer when done
+ [x] lock editing during playback
  [ ] wrap into electron or something to make it nice?

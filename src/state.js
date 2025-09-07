@@ -9,6 +9,7 @@ const state = {
   routineElapsed: 0,
   currentTimerElapsed: 0,
   currentRoutineName: '',
+  lastTickAtMs: 0,
 };
 
 export function resetProgress() {

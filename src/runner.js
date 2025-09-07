@@ -11,10 +11,12 @@ function playChime(chimeNumber) {
 
 function tick() {
   if (state.isPaused) return;
+  state.lastTickAtMs = (typeof performance !== 'undefined' ? performance.now() : Date.now());
   state.timeLeft--;
   state.currentTimerElapsed++;
   state.routineElapsed++;
   updateTopDisplay(state);
+  document.dispatchEvent(new CustomEvent('timers:updated'));
   if (state.timeLeft <= 0) {
     clearInterval(state.timerInterval);
     const timer = state.timers[state.currentTimerIndex];
@@ -30,6 +32,7 @@ export function runRoutine(resume = false) {
     state.isPaused = false;
     updateToggleButton(state);
     updateTopDisplay(state);
+    document.dispatchEvent(new CustomEvent('timers:updated'));
     return;
   }
   const timer = state.timers[state.currentTimerIndex];
@@ -38,8 +41,10 @@ export function runRoutine(resume = false) {
     state.currentTimerElapsed = 0;
     if (state.currentTimerIndex === 0) state.routineElapsed = 0;
   }
+  state.lastTickAtMs = (typeof performance !== 'undefined' ? performance.now() : Date.now());
   updateTopDisplay(state);
   updateToggleButton(state);
+  document.dispatchEvent(new CustomEvent('timers:updated'));
 
   clearInterval(state.timerInterval);
   state.timerInterval = setInterval(tick, 1000);
@@ -65,13 +70,14 @@ export function togglePlayPause() {
 }
 
 export function stopRoutine() {
-  if (!state.isRunning) return;
+  // Always reset the routine, even if not currently running
   clearInterval(state.timerInterval);
   state.isRunning = false;
   state.isPaused = false;
   resetProgress();
   updateTopDisplay(state);
   updateToggleButton(state);
+  document.dispatchEvent(new CustomEvent('timers:updated'));
 }
 
 export function stopRoutineIfRunning() {

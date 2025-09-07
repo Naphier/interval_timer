@@ -131,8 +131,62 @@ if (loadSelect) {
     renderTimers(state, { onChange: onTimersChanged });
     state.currentRoutineName = selectedName;
     setLastUsedRoutine(selectedName);
-    updateTopDisplay(state);
+  updateTopDisplay(state);
+});
+
+// Re-render timers on runner updates (ticks/start/stop)
+document.addEventListener('timers:updated', () => {
+  renderTimers(state, { onChange: onTimersChanged });
+  // Start/stop RAF-based smooth progress updates
+  if (state.isRunning && !state.isPaused) startProgressAnimation();
+  else stopProgressAnimation();
+});
+
+// Smooth progress animation using requestAnimationFrame
+let progressRafId = 0;
+function startProgressAnimation() {
+  if (progressRafId) return;
+  progressRafId = requestAnimationFrame(progressFrame);
+}
+function stopProgressAnimation() {
+  if (progressRafId) cancelAnimationFrame(progressRafId);
+  progressRafId = 0;
+}
+function progressFrame() {
+  if (!state.isRunning || state.isPaused) { stopProgressAnimation(); return; }
+  const rows = document.querySelectorAll('#timers-container .timer-item--progress');
+  const now = (typeof performance !== 'undefined' ? performance.now() : Date.now());
+  rows.forEach((row, idx) => {
+    const t = state.timers[idx];
+    if (!t) return;
+    const duration = t.duration || 0;
+    const fill = row.querySelector('.progress-fill');
+    if (!fill) return;
+    let elapsed = 0;
+    if (idx < state.currentTimerIndex) {
+      elapsed = duration;
+    } else if (idx === state.currentTimerIndex) {
+      const last = state.lastTickAtMs || now;
+      const frac = Math.min(1, Math.max(0, (now - last) / 1000));
+      elapsed = state.currentTimerElapsed + frac;
+    } else {
+      elapsed = 0;
+    }
+    const pct = duration > 0 ? Math.min(100, Math.max(0, (elapsed / duration) * 100)) : 0;
+    fill.style.width = pct + '%';
   });
+  // Update top display bar smoothly
+  const topFill = document.querySelector('#top-display .progress-fill');
+  if (topFill) {
+    const total = state.timers.reduce((s, t) => s + (t.duration || 0), 0);
+    const last = state.lastTickAtMs || now;
+    const frac = Math.min(1, Math.max(0, (now - last) / 1000));
+    const elapsed = Math.min(total, state.routineElapsed + frac);
+    const pct = total > 0 ? Math.min(100, Math.max(0, (elapsed / total) * 100)) : 0;
+    topFill.style.width = pct + '%';
+  }
+  progressRafId = requestAnimationFrame(progressFrame);
+}
 }
 
 // Delete button behavior

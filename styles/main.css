@@ -15,6 +15,13 @@ body {
     padding: 32px 24px;
 }
 
+/* Clearfix so floated children (e.g., #add-timer) expand container height */
+.app::after {
+    content: "";
+    display: block;
+    clear: both;
+}
+
 h1 {
     text-align: center;
     color: #fff;
@@ -51,6 +58,59 @@ form#routine-form select,
     gap: 8px;
     cursor: grab;
     box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+}
+
+.timer-item--progress {
+    cursor: default;
+    padding: 4px;
+}
+
+.progress-track {
+    position: relative;
+    width: 100%;
+    height: 28px;
+    background: #2a2e39;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 0%;
+    background: #3b82f6; /* primary */
+    transition: none;
+    will-change: width;
+}
+
+.progress-text {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 100%;
+    padding: 0 8px;
+    color: #ffffff;
+    font-weight: bold;
+    user-select: none;
+}
+
+.progress-check {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+    pointer-events: none;
+}
+
+.progress-check svg {
+    width: 20px;
+    height: 20px;
 }
 
 .timer-item .timer-name,
@@ -206,17 +266,23 @@ select {
 }
 
 #top-display {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 18px;
-    color: #a3a3a3;
-    font-weight: bold;
+    display: block;
     margin-bottom: 18px;
 }
 
-#top-display span {
-    float: none !important;
+#top-display .progress-track {
+    height: 32px;
+}
+
+/* Make Add Timer a floating square button on the right */
+#add-timer {
+    width: 44px !important;
+    height: 44px;
+    padding: 0;
+    float: right;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
 /* Modal */
