@@ -51,6 +51,7 @@ saveModalSaveBtn.addEventListener('click', () => {
   if (loadSelect) loadSelect.value = name;
   updateDeleteButtonState();
   showToast(`Saved "${name}"`);
+  updateTopDisplay(state);
 });
 saveModalCancelBtn.addEventListener('click', () => closeSaveModal());
 // Confirm modal keyboard support
@@ -87,6 +88,7 @@ document.addEventListener('keydown', (e) => {
     if (loadSelect) loadSelect.value = name;
     updateDeleteButtonState();
     showToast(`Saved "${name}"`);
+    updateTopDisplay(state);
   }
 });
 
