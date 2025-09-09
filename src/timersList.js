@@ -186,16 +186,25 @@ export function renderTimers(state, { onChange } = {}) {
       renderTimers(state, { onChange });
     });
 
-    timerDiv.appendChild(handle);
-    timerDiv.appendChild(repeatsInput);
-    timerDiv.appendChild(repeatLabel);
-    timerDiv.appendChild(nameInput);
-    timerDiv.appendChild(durationInput);
-    timerDiv.appendChild(colonLabel);
-    timerDiv.appendChild(secondsInput);
-    timerDiv.appendChild(secLabel);
-    timerDiv.appendChild(chimeSelect);
-    timerDiv.appendChild(removeBtn);
+    // Two-row layout inside each timer item
+    const topRow = document.createElement('div');
+    topRow.className = 'timer-row timer-row--top';
+    topRow.appendChild(handle);
+    topRow.appendChild(repeatsInput);
+    topRow.appendChild(repeatLabel);
+    topRow.appendChild(nameInput);
+
+    const bottomRow = document.createElement('div');
+    bottomRow.className = 'timer-row timer-row--bottom';
+    bottomRow.appendChild(durationInput);
+    bottomRow.appendChild(colonLabel);
+    bottomRow.appendChild(secondsInput);
+    bottomRow.appendChild(secLabel);
+    bottomRow.appendChild(chimeSelect);
+    bottomRow.appendChild(removeBtn);
+
+    timerDiv.appendChild(topRow);
+    timerDiv.appendChild(bottomRow);
 
     timersContainer.appendChild(timerDiv);
   });

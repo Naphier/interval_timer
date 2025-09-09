@@ -6,6 +6,8 @@ body {
     color: #e0e0e0;
 }
 
+html, body { max-width: 100%; overflow-x: hidden; }
+
 .app {
     max-width: 600px;
     margin: 40px auto;
@@ -50,15 +52,22 @@ form#routine-form select,
 
 .timer-item {
     display: flex;
-    align-items: center;
+    align-items: stretch;
     background: #20222b;
     border-radius: 6px;
     padding: 8px 8px;
     margin-bottom: 10px;
-    gap: 8px;
+    gap: 0;
     cursor: grab;
     box-shadow: 0 2px 8px rgba(0,0,0,0.10);
 }
+
+/* Inner rows for editor layout */
+.timer-row { display: flex; align-items: center; gap: 8px; width: 100%; }
+.timer-row--top { margin-bottom: 6px; }
+.timer-row--top .timer-name { flex: 1 1 auto; min-width: 0; }
+.timer-row--bottom { flex-wrap: nowrap; }
+.timer-row--bottom .remove-timer { margin-left: auto; }
 
 .timer-item--progress {
     cursor: default;
@@ -118,11 +127,13 @@ form#routine-form select,
 .timer-item .timer-duration,
 .timer-item .timer-seconds,
 .timer-item .timer-chime {
+    box-sizing: border-box;
     background: #23262f;
     color: #e0e0e0;
     border: 1px solid #444;
     border-radius: 4px;
     padding: 6px;
+    height: 36px; /* unify control height */
 }
 
 .timer-item .timer-name {
@@ -382,4 +393,88 @@ select {
 .toast.show {
     opacity: 1;
     transform: translateY(0);
+}
+
+/* Responsive: Mobile tweaks */
+@media (max-width: 600px) {
+    .app {
+        margin: 12px;
+        padding: 16px 14px;
+        max-width: 100%;
+        box-shadow: none;
+        border-radius: 8px;
+    }
+
+    form#routine-form {
+        flex-wrap: nowrap;
+        gap: 8px;
+    }
+
+    form#routine-form select {
+        flex: 1 1 auto;
+        min-width: 0;
+        height: 44px;
+    }
+
+    form#routine-form .btn--icon {
+        width: 44px;
+        height: 44px;
+        padding: 0;
+        flex: 0 0 44px;
+    }
+
+    .controls-row {
+        gap: 8px;
+    }
+    .controls-row .btn {
+        height: 44px;
+    }
+
+    #top-display .progress-track {
+        height: 28px;
+    }
+
+    .timer-item { flex-direction: column; gap: 0; }
+    .timer-row--top { margin-bottom: 8px; }
+    .timer-row--bottom { flex-wrap: nowrap; }
+    .drag-handle { min-width: 28px; }
+
+    /* Larger tap targets for inputs */
+    .timer-item input[type="number"],
+    .timer-item input[type="text"],
+    .timer-item select {
+        height: 40px;
+    }
+
+    /* Floating add button remains square and easy to tap */
+    #add-timer {
+        width: 48px !important;
+        height: 48px;
+    }
+
+    /* Toast spans more width on small screens */
+    .toast {
+        right: 12px;
+        left: 12px;
+        max-width: none;
+    }
+}
+
+/* Ultra-small screens */
+@media (max-width: 380px) {
+    .timer-item .timer-chime { min-width: 0; flex-basis: 100%; }
+}
+
+/* Alignment fixes for editor rows */
+.timer-row .drag-handle { height: 36px; }
+.timer-label { display: inline-flex; align-items: center; height: 36px; line-height: 1; }
+.timer-item .remove-timer { height: 36px; padding: 0 10px; }
+/* Nudge top row contents down slightly for optical alignment */
+.timer-row--top > * { position: relative; top: 3px; }
+
+@media (max-width: 600px) {
+  .timer-row .drag-handle,
+  .timer-label,
+  .timer-item .remove-timer { height: 40px; }
+  .timer-row--top > * { top: 2px; }
 }
