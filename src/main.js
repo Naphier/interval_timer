@@ -8,7 +8,7 @@ import { saveRoutine, loadRoutine, listRoutines, deleteRoutine, getLastUsedRouti
 
 function autoSave() {
   const name = state.currentRoutineName?.trim();
-  if (name) saveRoutine(name, state.timers);
+  if (name) saveRoutine(name, { timers: state.timers, chain: state.chain });
 }
 
 // Timers change handler: stop if running, then autosave
@@ -45,7 +45,7 @@ saveModalSaveBtn.addEventListener('click', () => {
   const name = (saveModalNameInput.value || '').trim();
   if (!name) { saveModalNameInput.focus(); return; }
   state.currentRoutineName = name;
-  saveRoutine(name, state.timers);
+  saveRoutine(name, { timers: state.timers, chain: state.chain });
   closeSaveModal();
   populateRoutineDropdown();
   if (loadSelect) loadSelect.value = name;
@@ -82,7 +82,7 @@ document.addEventListener('keydown', (e) => {
     const name = (saveModalNameInput.value || '').trim();
     if (!name) { saveModalNameInput.focus(); return; }
     state.currentRoutineName = name;
-    saveRoutine(name, state.timers);
+    saveRoutine(name, { timers: state.timers, chain: state.chain });
     closeSaveModal();
     populateRoutineDropdown();
     if (loadSelect) loadSelect.value = name;
@@ -129,12 +129,14 @@ if (loadSelect) {
     const loaded = loadRoutine(selectedName);
     if (!loaded) { showToast(`"${selectedName}" not found.`); return; }
     state.timers.length = 0;
-    loaded.forEach((t) => state.timers.push(t));
+    loaded.timers.forEach((t) => state.timers.push(t));
+    state.chain = loaded.chain ? { ...loaded.chain, current: 1 } : null;
     renderTimers(state, { onChange: onTimersChanged });
     state.currentRoutineName = selectedName;
     setLastUsedRoutine(selectedName);
-  updateTopDisplay(state);
-});
+    updateTopDisplay(state);
+  });
+}
 
 // Re-render timers on runner updates (ticks/start/stop)
 document.addEventListener('timers:updated', () => {
@@ -181,10 +183,18 @@ function progressFrame() {
   // Update top display bar smoothly
   const topFill = document.querySelector('#top-display .progress-fill');
   if (topFill) {
-    const total = state.timers.reduce((s, t) => {
+    let total = state.timers.reduce((s, t) => {
       const reps = Math.min(99, Math.max(1, parseInt(t.repeats || 1, 10)));
       return s + (t.duration || 0) * reps;
     }, 0);
+    if (state.chain) {
+      const block = state.timers.slice(state.chain.start, state.chain.end + 1).reduce((s, t) => {
+        const reps = Math.min(99, Math.max(1, parseInt(t.repeats || 1, 10)));
+        return s + (t.duration || 0) * reps;
+      }, 0);
+      const chainReps = Math.min(99, Math.max(1, parseInt(state.chain.repeats || 1, 10)));
+      total += block * (chainReps - 1);
+    }
     const last = state.lastTickAtMs || now;
     const speed = Math.max(1, state.speedMultiplier || 1);
     const frac = Math.max(0, (now - last) / 1000 * speed);
@@ -246,7 +256,8 @@ window.addEventListener('DOMContentLoaded', () => {
     const loaded = loadRoutine(last);
     if (loaded) {
       state.timers.length = 0;
-      loaded.forEach((t) => state.timers.push(t));
+      loaded.timers.forEach((t) => state.timers.push(t));
+      state.chain = loaded.chain ? { ...loaded.chain, current: 1 } : null;
       renderTimers(state, { onChange: onTimersChanged });
       state.currentRoutineName = last;
       if (loadSelect) loadSelect.value = last;

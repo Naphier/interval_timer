@@ -8,10 +8,18 @@ export function formatTime(seconds) {
 }
 
 export function updateTopDisplay({ timers, routineElapsed }) {
-  const routineTotal = timers.reduce((sum, t) => {
+  let routineTotal = timers.reduce((sum, t) => {
     const reps = Math.min(99, Math.max(1, parseInt(t.repeats || 1, 10)));
     return sum + (t.duration || 0) * reps;
   }, 0);
+  if (state.chain) {
+    const block = timers.slice(state.chain.start, state.chain.end + 1).reduce((sum, t) => {
+      const reps = Math.min(99, Math.max(1, parseInt(t.repeats || 1, 10)));
+      return sum + (t.duration || 0) * reps;
+    }, 0);
+    const chainReps = Math.min(99, Math.max(1, parseInt(state.chain.repeats || 1, 10)));
+    routineTotal += block * (chainReps - 1);
+  }
   const routineElapsedStr = formatTime(Math.min(routineElapsed, routineTotal));
   const routineTotalStr = formatTime(routineTotal);
   const name = (state.currentRoutineName || '').trim() || 'unsaved';
