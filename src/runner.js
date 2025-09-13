@@ -32,6 +32,16 @@ function tick() {
       // Move to next timer
       state.currentTimerIndex++;
       state.currentRepeat = 1;
+      if (state.chain && state.currentTimerIndex === (state.chain.end + 1)) {
+        const totalChainRepeats = Math.min(99, Math.max(1, parseInt(state.chain.repeats || 1, 10)));
+        state.chain.current = state.chain.current || 1;
+        if (state.chain.current < totalChainRepeats) {
+          state.chain.current++;
+          state.currentTimerIndex = state.chain.start;
+        } else {
+          state.chain.current = 1;
+        }
+      }
       runRoutine();
     }
   }
@@ -68,6 +78,7 @@ export function togglePlayPause() {
     state.isPaused = false;
     state.currentTimerIndex = 0;
     state.currentRepeat = 1;
+    if (state.chain) state.chain.current = 1;
     stopRoutineBtn.disabled = false;
     runRoutine();
   } else if (!state.isPaused) {

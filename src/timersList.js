@@ -4,7 +4,7 @@ import { formatTime } from './ui/topDisplay.js';
 // Renders the list of timers with drag-and-drop and inline editing
 export function renderTimers(state, { onChange } = {}) {
   timersContainer.innerHTML = '';
-  const { timers, isRunning, currentTimerIndex, currentTimerElapsed, timeLeft } = state;
+  const { timers, chain, isRunning, currentTimerIndex, currentTimerElapsed, timeLeft } = state;
   const isCompleted = !isRunning && timers.length > 0 && currentTimerIndex >= timers.length;
 
   let dragSrcIdx = null;
@@ -68,8 +68,11 @@ export function renderTimers(state, { onChange } = {}) {
     }
 
     // Editor view (not running)
+    const inChain = chain && idx >= chain.start && idx <= chain.end;
     const timerDiv = document.createElement('div');
-    timerDiv.className = 'timer-item';
+    timerDiv.className = 'timer-item' + (inChain ? ' in-chain' : '');
+    if (inChain && idx === chain.start) timerDiv.classList.add('chain-start');
+    if (inChain && idx === chain.end) timerDiv.classList.add('chain-end');
     timerDiv.draggable = true;
     timerDiv.dataset.index = String(idx);
 
@@ -92,6 +95,28 @@ export function renderTimers(state, { onChange } = {}) {
     const handle = document.createElement('span');
     handle.className = 'drag-handle';
     handle.innerHTML = '&#9776;';
+
+    const chainCheckbox = document.createElement('input');
+    chainCheckbox.type = 'checkbox';
+    chainCheckbox.className = 'chain-checkbox';
+    chainCheckbox.checked = inChain;
+    if (inChain && idx > chain.start && idx < chain.end) chainCheckbox.disabled = true;
+    chainCheckbox.addEventListener('change', () => {
+      const selected = [];
+      timersContainer.querySelectorAll('.chain-checkbox').forEach((cb, i) => {
+        if (cb.checked) selected.push(i);
+      });
+      if (selected.length === 0) {
+        state.chain = null;
+      } else {
+        const start = Math.min(...selected);
+        const end = Math.max(...selected);
+        const repeats = state.chain?.repeats || 1;
+        state.chain = { start, end, repeats, current: 1 };
+      }
+      onChange?.('edit');
+      renderTimers(state, { onChange });
+    });
 
     // Repeats input (before name)
     const repeatsInput = document.createElement('input');
@@ -182,6 +207,11 @@ export function renderTimers(state, { onChange } = {}) {
     removeBtn.title = 'Remove';
     removeBtn.addEventListener('click', () => {
       state.timers.splice(idx, 1);
+      if (state.chain) {
+        if (idx < state.chain.start) state.chain.start--;
+        if (idx <= state.chain.end) state.chain.end--;
+        if (state.chain.start > state.chain.end) state.chain = null;
+      }
       onChange?.('remove');
       renderTimers(state, { onChange });
     });
@@ -189,6 +219,7 @@ export function renderTimers(state, { onChange } = {}) {
     // Two-row layout inside each timer item
     const topRow = document.createElement('div');
     topRow.className = 'timer-row timer-row--top';
+    topRow.appendChild(chainCheckbox);
     topRow.appendChild(handle);
     topRow.appendChild(repeatsInput);
     topRow.appendChild(repeatLabel);
@@ -205,6 +236,37 @@ export function renderTimers(state, { onChange } = {}) {
 
     timerDiv.appendChild(topRow);
     timerDiv.appendChild(bottomRow);
+
+    if (inChain && idx === chain.start) {
+      const chainControls = document.createElement('div');
+      chainControls.className = 'chain-controls';
+      const repeatInput = document.createElement('input');
+      repeatInput.type = 'number';
+      repeatInput.min = 1;
+      repeatInput.max = 99;
+      repeatInput.value = Math.min(99, Math.max(1, parseInt(chain.repeats || 1, 10)));
+      repeatInput.className = 'chain-repeat';
+      repeatInput.addEventListener('input', (e) => {
+        let val = parseInt(e.target.value, 10);
+        if (isNaN(val) || val < 1) val = 1;
+        if (val > 99) val = 99;
+        e.target.value = String(val);
+        state.chain.repeats = val;
+        onChange?.('edit');
+      });
+      const delBtn = document.createElement('button');
+      delBtn.className = 'chain-delete btn btn--icon';
+      delBtn.innerHTML = '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M8 6l1-3h6l1 3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><rect x="6" y="6" width="12" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10 11v6M14 11v6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+      delBtn.title = 'Delete chain';
+      delBtn.addEventListener('click', () => {
+        state.chain = null;
+        onChange?.('edit');
+        renderTimers(state, { onChange });
+      });
+      chainControls.appendChild(repeatInput);
+      chainControls.appendChild(delBtn);
+      timerDiv.appendChild(chainControls);
+    }
 
     timersContainer.appendChild(timerDiv);
   });

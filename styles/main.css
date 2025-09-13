@@ -472,6 +472,47 @@ select {
 /* Nudge top row contents down slightly for optical alignment */
 .timer-row--top > * { position: relative; top: 3px; }
 
+/* Chain/block editing */
+.chain-checkbox { margin-right: 4px; }
+.timer-item.in-chain { margin-left: 32px; position: relative; }
+.timer-item.in-chain::before {
+  content: '';
+  position: absolute;
+  left: -16px;
+  top: 0;
+  bottom: 0;
+  border-left: 2px solid #555;
+}
+.timer-item.chain-start::before { top: 8px; }
+.timer-item.chain-end::before { bottom: 8px; }
+.timer-item.chain-start::after {
+  content: '';
+  position: absolute;
+  left: -16px;
+  top: 0;
+  width: 12px;
+  border-top: 2px solid #555;
+}
+.timer-item.chain-end::after {
+  content: '';
+  position: absolute;
+  left: -16px;
+  bottom: 0;
+  width: 12px;
+  border-bottom: 2px solid #555;
+}
+.chain-controls {
+  position: absolute;
+  left: -60px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+.chain-repeat { width: 32px; }
+.chain-delete .icon { width: 20px; height: 20px; }
+
 @media (max-width: 600px) {
   .timer-row .drag-handle,
   .timer-label,

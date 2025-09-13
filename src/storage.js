@@ -1,9 +1,15 @@
 const ROUTINE_PREFIX = 'routine_';
 const LAST_USED_KEY = 'last_used_routine';
 
-export function saveRoutine(name, timers) {
+export function saveRoutine(name, { timers, chain }) {
   if (!name) return;
-  localStorage.setItem(`${ROUTINE_PREFIX}${name}`, JSON.stringify(timers));
+  const data = {
+    timers,
+    chain: chain
+      ? { start: chain.start, end: chain.end, repeats: chain.repeats }
+      : null,
+  };
+  localStorage.setItem(`${ROUTINE_PREFIX}${name}`, JSON.stringify(data));
   setLastUsedRoutine(name);
 }
 
@@ -11,7 +17,15 @@ export function loadRoutine(name) {
   const data = localStorage.getItem(`${ROUTINE_PREFIX}${name}`);
   if (!data) return null;
   try {
-    return JSON.parse(data);
+    const parsed = JSON.parse(data);
+    if (Array.isArray(parsed)) {
+      // Legacy format: just timers array
+      return { timers: parsed, chain: null };
+    }
+    return {
+      timers: parsed.timers || [],
+      chain: parsed.chain || null,
+    };
   } catch {
     return null;
   }
