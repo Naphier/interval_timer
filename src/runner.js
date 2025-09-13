@@ -81,6 +81,16 @@ export function togglePlayPause() {
   updateToggleButton(state);
 }
 
+export function skipCurrentTimer() {
+  if (!state.isRunning) return;
+  const remaining = Math.max(0, state.timeLeft || 0);
+  state.routineElapsed += remaining;
+  clearInterval(state.timerInterval);
+  state.currentTimerIndex++;
+  state.currentRepeat = 1;
+  runRoutine();
+}
+
 export function stopRoutine() {
   // Always reset the routine, even if not currently running
   clearInterval(state.timerInterval);
