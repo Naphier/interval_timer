@@ -21,6 +21,14 @@ const toggleRoutineBtn = document.createElement('button');
 toggleRoutineBtn.id = 'toggle-routine';
 toggleRoutineBtn.className = 'btn btn--icon btn--primary';
 
+const skipRoutineBtn = document.createElement('button');
+skipRoutineBtn.textContent = '\u23E9'; // Fast-forward icon ⏩
+skipRoutineBtn.id = 'skip-timer';
+skipRoutineBtn.className = 'btn btn--icon btn--secondary';
+skipRoutineBtn.setAttribute('aria-label', 'Skip');
+skipRoutineBtn.title = 'Skip';
+skipRoutineBtn.style.display = 'none';
+
 const stopRoutineBtn = document.createElement('button');
 stopRoutineBtn.textContent = '\u23F9'; // Stop icon ⏹
 stopRoutineBtn.id = 'stop-routine';
@@ -29,6 +37,7 @@ stopRoutineBtn.setAttribute('aria-label', 'Stop');
 stopRoutineBtn.title = 'Stop';
 
 controlsContainer.appendChild(toggleRoutineBtn);
+controlsContainer.appendChild(skipRoutineBtn);
 controlsContainer.appendChild(stopRoutineBtn);
 
 export function updateToggleButton({ isRunning, isPaused }) {
@@ -36,6 +45,7 @@ export function updateToggleButton({ isRunning, isPaused }) {
   toggleRoutineBtn.textContent = (!isRunning || isPaused) ? '\u25B6' : '\u23F8';
   // Disable adding timers while routine is running (paused or not)
   if (addTimerBtn) addTimerBtn.disabled = !!isRunning;
+  if (skipRoutineBtn) skipRoutineBtn.style.display = isRunning ? '' : 'none';
 }
 
 export {
@@ -45,6 +55,7 @@ export {
   topDisplay,
   controlsContainer,
   toggleRoutineBtn,
+  skipRoutineBtn,
   stopRoutineBtn,
   audioEl,
 };

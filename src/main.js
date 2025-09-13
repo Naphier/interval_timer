@@ -1,9 +1,9 @@
 import state from './state.js';
-import { addTimerBtn, routineForm, toggleRoutineBtn, stopRoutineBtn, openSaveModal, closeSaveModal, saveModalNameInput, saveModalSaveBtn, saveModalCancelBtn, saveModal, showToast, openConfirmModal, closeConfirmModal, confirmModal, confirmModalConfirmBtn, confirmModalCancelBtn } from './dom.js';
+import { addTimerBtn, routineForm, toggleRoutineBtn, skipRoutineBtn, stopRoutineBtn, openSaveModal, closeSaveModal, saveModalNameInput, saveModalSaveBtn, saveModalCancelBtn, saveModal, showToast, openConfirmModal, closeConfirmModal, confirmModal, confirmModalConfirmBtn, confirmModalCancelBtn } from './dom.js';
 import { updateTopDisplay } from './ui/topDisplay.js';
 import { updateToggleButton } from './dom.js';
 import { renderTimers } from './timersList.js';
-import { stopRoutineIfRunning, togglePlayPause, stopRoutine } from './runner.js';
+import { stopRoutineIfRunning, togglePlayPause, stopRoutine, skipCurrentTimer } from './runner.js';
 import { saveRoutine, loadRoutine, listRoutines, deleteRoutine, getLastUsedRoutine, setLastUsedRoutine } from './storage.js';
 
 function autoSave() {
@@ -28,6 +28,10 @@ addTimerBtn.addEventListener('click', () => {
 // Controls
 toggleRoutineBtn.addEventListener('click', () => {
   togglePlayPause();
+});
+
+skipRoutineBtn.addEventListener('click', () => {
+  skipCurrentTimer();
 });
 
 stopRoutineBtn.addEventListener('click', () => {

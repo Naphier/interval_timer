@@ -6,7 +6,7 @@ A lightweight, browser-based interval timer for building and running simple rout
 - Multiple timers: add, name, set duration (mm:ss), choose chime (10 included).
 - Repeats per timer: set how many times a timer repeats (1–99). While running, the active row shows current/total (e.g., 2/5); hidden when repeats = 1.
 - Drag-and-drop reorder with a handle for precise control.
-- Play/pause and stop controls with clear icons.
+- Play/pause, skip, and stop controls with clear icons.
 - Progress bars: per-timer and overall routine with completion checkmarks.
 - Local persistence: save routines to `localStorage`; auto-load last used routine.
 - Accessible modals for Save and Delete with keyboard support (Enter/Escape).
@@ -27,7 +27,7 @@ Option 2: Serve locally (recommended)
 - Add timer: click the “+” button.
 - Edit: set repeats (x) before the name, set a name, minutes and seconds, and pick a chime.
 - Reorder: drag using the ≡ handle on the left.
-- Run: press ▶ to start; press ⏸ to pause; press ⏹ to stop and reset.
+- Run: press ▶ to start; press ⏸ to pause; press ⏩ to skip the current timer; press ⏹ to stop and reset.
 - Save: click the disk icon, name your routine, then Save.
 - Load: use the dropdown to select a saved routine.
 - Delete: select a routine and click the trash icon; confirm in the modal.
